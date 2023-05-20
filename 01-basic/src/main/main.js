@@ -40,8 +40,23 @@ renderer.render(scene, camera);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
-gsap.to(mesh.position, { x: 5, duration: 5, ease: "power.inOut" });
+let animal1 = gsap.to(mesh.position, {
+  x: 5,
+  duration: 5,
+  ease: "power.inOut",
+  repeat: 5,
+  yoyo: true,
+  onComplete: function () {},
+});
 gsap.to(mesh.rotation, { x: 2 * Math.PI, duration: 5 });
+
+window.addEventListener("dblclick", () => {
+  if (animal1.isActive()) {
+    animal1.pause();
+  } else {
+    animal1.resume();
+  }
+});
 
 function animate(time) {
   // mesh.position.x += 0.01;
