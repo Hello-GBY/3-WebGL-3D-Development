@@ -10,7 +10,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(2, 2, 2);
+camera.position.set(10, 2, 10);
 scene.add(camera);
 
 // 创建几何体
@@ -34,6 +34,9 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
 function animate() {
+  mesh.position.x += 0.01;
+  if (mesh.position.x > 5) mesh.position.x = 0;
+
   requestAnimationFrame(animate); // 下一帧的时候进行渲染
   renderer.render(scene, camera);
 }
@@ -43,3 +46,5 @@ animate();
 // 添加坐标轴辅助器
 const axesHelper = new THREE.AxesHelper(3);
 scene.add(axesHelper);
+
+// 3d物体移动
