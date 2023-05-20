@@ -21,6 +21,11 @@ const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
+// 缩放
+mesh.scale.set(2, 1, 1);
+// 旋转
+mesh.rotation.set(Math.PI / 4, 0, 0);
+
 // 初始化渲染器
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -35,6 +40,8 @@ controls.update();
 
 function animate() {
   mesh.position.x += 0.01;
+  mesh.rotation.x -= 0.01;
+
   if (mesh.position.x > 5) mesh.position.x = 0;
 
   requestAnimationFrame(animate); // 下一帧的时候进行渲染
