@@ -40,6 +40,9 @@ renderer.render(scene, camera);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
+// 设置控制器阻尼 ， 让控制器更真实
+controls.enableDamping = true;
+
 let animal1 = gsap.to(mesh.position, {
   x: 5,
   duration: 5,
@@ -64,7 +67,7 @@ function animate(time) {
   // let t = (time / 1000) % 5;
   // mesh.position.x = t * 1;
   // if (mesh.position.x > 5) mesh.position.x = 0;
-
+  controls.update();
   requestAnimationFrame(animate); // 下一帧的时候进行渲染
   renderer.render(scene, camera);
 }
@@ -76,3 +79,13 @@ const axesHelper = new THREE.AxesHelper(3);
 scene.add(axesHelper);
 
 // 3d物体移动
+
+// 监听画面变化
+window.addEventListener("resize", () => {
+  // 更新摄像头
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+});
