@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import gsap from "gsap";
+
 // 创建场景
 const scene = new THREE.Scene();
 
@@ -22,7 +24,7 @@ const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
 
 // 缩放
-mesh.scale.set(2, 1, 1);
+mesh.scale.set(1, 1, 1);
 // 旋转
 mesh.rotation.set(Math.PI / 4, 0, 0);
 
@@ -38,17 +40,21 @@ renderer.render(scene, camera);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
-function animate() {
-  mesh.position.x += 0.01;
-  mesh.rotation.x -= 0.01;
+gsap.to(mesh.position, { x: 5, duration: 5, ease: "power.inOut" });
+gsap.to(mesh.rotation, { x: 2 * Math.PI, duration: 5 });
 
-  if (mesh.position.x > 5) mesh.position.x = 0;
+function animate(time) {
+  // mesh.position.x += 0.01;
+  // mesh.rotation.x -= 0.01;
+  // let t = (time / 1000) % 5;
+  // mesh.position.x = t * 1;
+  // if (mesh.position.x > 5) mesh.position.x = 0;
 
   requestAnimationFrame(animate); // 下一帧的时候进行渲染
   renderer.render(scene, camera);
 }
 
-animate();
+animate(0);
 
 // 添加坐标轴辅助器
 const axesHelper = new THREE.AxesHelper(3);
