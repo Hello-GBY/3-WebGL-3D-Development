@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import gsap from "gsap";
+
+import gsap from "gsap"; // 动画库
+import * as dat from "dat.gui"; // 界面库
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -43,15 +45,15 @@ controls.update();
 // 设置控制器阻尼 ， 让控制器更真实
 controls.enableDamping = true;
 
-let animal1 = gsap.to(mesh.position, {
-  x: 5,
-  duration: 5,
-  ease: "power.inOut",
-  repeat: 5,
-  yoyo: true,
-  onComplete: function () {},
-});
-gsap.to(mesh.rotation, { x: 2 * Math.PI, duration: 5 });
+// let animal1 = gsap.to(mesh.position, {
+//   x: 5,
+//   duration: 5,
+//   ease: "power.inOut",
+//   repeat: 5,
+//   yoyo: true,
+//   onComplete: function () {},
+// });
+// gsap.to(mesh.rotation, { x: 2 * Math.PI, duration: 5 });
 
 window.addEventListener("dblclick", () => {
   if (animal1.isActive()) {
@@ -96,3 +98,21 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
 });
+
+// 界面库使用
+const gui = new dat.GUI();
+gui.add(mesh.position, "x").min(0).max(5).step(0.01).name("x轴").setValue(1.93);
+
+var palette = {
+  color1: "#FFFFF0", // CSS string
+  fn: () => {
+    gsap.to(mesh.position, { x: 5, yoyo: true, duration: 5, repeat: -1 });
+  },
+};
+gui.addColor(palette, "color1").onChange((value) => {
+  mesh.material.color.set(value);
+});
+gui.add(mesh, "visible").name("是否显示");
+gui.add(palette, "fn").name("点击移动");
+let folder = gui.addFolder("设置立方体");
+folder.add(mesh.material, "wireframe");
