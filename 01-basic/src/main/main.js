@@ -59,6 +59,13 @@ window.addEventListener("dblclick", () => {
   } else {
     animal1.resume();
   }
+
+  // 全屏控制
+  if (!document.fullscreenElement) {
+    renderer.domElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
 });
 
 function animate(time) {
