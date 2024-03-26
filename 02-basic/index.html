@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <link rel="stylesheet" href="./css/style.css"/>
-</head>
 <body>
+  <script type="importmap">
+      {
+          "imports": {
+            "three": "./node_modules/three/build/three.module.js",
+            "CSS2DRenderer": "./node_modules/three/examples/jsm/renderers/CSS2DRenderer.js"       
+          }
+      }
+  </script>
   <script type="module" src="./index.js"></script>
 </body>
 </html>
