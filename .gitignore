@@ -1,5 +1,6 @@
 .DS_Store
 .cache/
 dist/
+threeDemo/three/
 
 **/node_modules

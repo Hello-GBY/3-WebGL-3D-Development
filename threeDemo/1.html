@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>three.js webgl - animation - keyframes</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			background-color: #bfe3dd;
+			color: #000;
+		}
+
+		a {
+			color: #2983ff;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="container"></div>
+
+
+	<script type="importmap">
+			{
+				"imports": {
+					"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+					"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+				}
+			}
+		</script>
+
+	<script type="module">
+
+		import * as THREE from 'three';
+		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+		import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+		import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+
+		const container = document.getElementById('container');
+
+
+		// 初始化renderer
+		const renderer = new THREE.WebGLRenderer({
+			antialias: true
+		});
+
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.setPixelRatio(window.devicePixelRatio);
+		container.appendChild(renderer.domElement);
+
+
+		// 初始化scene
+		const scene = new THREE.Scene();
+		scene.background = new THREE.Color(0xbfe3dd);
+		// 创建环境光
+		const environment = new RoomEnvironment();
+		scene.environment = environment;
+
+		// 初始化相机
+		const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 100);
+		camera.position.set(5, 2, 8);
+		scene.add(camera);
+
+		// 创建控制器
+		const controls = new OrbitControls(camera, renderer.domElement);
+		controls.target.set(0, 0.5, 0);
+		controls.update();
+		controls.enablePan = false;
+		controls.enableDamping = true;
+
+		// 创建一个场景模型
+		const loader = new GLTFLoader();
+		const dracoLoader = new DRACOLoader();
+		dracoLoader.setDecoderPath('./three/examples/jsm/libs/draco/');
+		loader.setDRACOLoader(dracoLoader);
+
+		loader.load('./three/examples/models/gltf/LittlestTokyo.glb', (gltf) => {
+			let model = gltf.scene;
+			model.position.set(1, 1, 0);
+			model.scale.set(0.01, 0.01, 0.01);
+			scene.add(gltf.scene);
+			dracoLoader.dispose();
+		}, undefined, function (e) {
+			console.error(e);
+		});
+
+
+
+		// 动画渲染
+		function animate() {
+			controls.update();
+			renderer.render(scene, camera);
+			requestAnimationFrame(animate);
+		}
+
+		animate()
+	</script>
+
+</body>
+
+</html>
