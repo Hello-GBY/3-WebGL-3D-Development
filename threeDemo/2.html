@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>three.js webgl - animation - keyframes</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			background-color: #bfe3dd;
+			color: #000;
+		}
+
+		a {
+			color: #2983ff;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="container"></div>
+
+
+	<script type="importmap">
+			{
+				"imports": {
+					"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+					"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+				}
+			}
+		</script>
+
+	<script type="module">
+
+		import * as THREE from 'three';
+		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+		import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+		import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+		// 画布
+		const container = document.getElementById('container');
+
+		// 渲染器
+		const renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.shadowMap.enabled = true;
+		container.appendChild(renderer.domElement);
+
+		// 创建场景
+		const scene = new THREE.Scene();
+		scene.background = new THREE.Color(0xcfbbbd);
+
+		// 创建相机
+		const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 100);
+		camera.position.set(1, 2, -10);
+		camera.lookAt(0, 1, 0);
+
+		scene.add(camera)
+		renderer.render(scene, camera);
+
+		let idleAction = null;
+		let walkAction = null;
+		let runAction = null;
+		let actions = null;
+		let mixer = null;
+		const clock = new THREE.Clock();
+
+		function setWeight(action, weight) {
+			action.setEffectiveWeight(weight);
+			action.play();
+		}
+
+		const loader = new GLTFLoader();
+		loader.load('./three/examples/models/gltf/Soldier.glb', (gltf) => {
+			const model = gltf.scene;
+			scene.add(model);
+			model.traverse(function (object) {
+				if (object.isMesh) object.castShadow = true;
+			});
+
+			// 
+			const skeleton = new THREE.SkeletonHelper(model);
+			skeleton.visible = true;
+			scene.add(skeleton);
+
+
+			// 拿到模型动画
+			mixer = new THREE.AnimationMixer(model);
+
+			// idleAction = mixer.clipAction(gltf.animations[0]);
+			walkAction = mixer.clipAction(gltf.animations[3]);
+			// runAction = mixer.clipAction(gltf.animations[1]);
+
+			actions = [idleAction, walkAction, runAction];
+			setWeight(walkAction, 1);
+			renderer.setAnimationLoop(animate);
+		});
+
+		// 添加环境光
+		// const pmremGenerator = new THREE.PMREMGenerator(renderer);
+		// scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+
+		const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d8d8d, 3);
+		hemiLight.position.set(0, 20, 0);
+		scene.add(hemiLight);
+
+		const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+		directionalLight.position.set(-1, 5, -1);
+		directionalLight.castShadow = true;
+		directionalLight.shadow.camera.bottom = - 2;
+		directionalLight.shadow.camera.left = - 2;
+		directionalLight.shadow.camera.right = 2;
+		directionalLight.shadow.camera.near = 0.1;
+		directionalLight.shadow.camera.far = 40;
+		directionalLight.shadow.mapSize.set(1024, 1024);
+		scene.add(directionalLight);
+
+		const helper = new THREE.DirectionalLightHelper(directionalLight, 5);
+		scene.add(helper);
+
+		const mesh = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshPhongMaterial({ color: 0xcbcbcb, depthWrite: false }));
+		mesh.rotation.x = - Math.PI / 2;
+		mesh.receiveShadow = true;
+		scene.add(mesh);
+
+
+
+
+		function animate() {
+			let mixerUpdateDelta = clock.getDelta();
+			mixer.update(mixerUpdateDelta);
+			renderer.render(scene, camera);
+			requestAnimationFrame(animate);
+		}
+	</script>
+
+</body>
+
+</html>

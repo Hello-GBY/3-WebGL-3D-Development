@@ -40,6 +40,8 @@
 		import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 
+		const clock = new THREE.Clock();
+
 		const container = document.getElementById('container');
 
 
@@ -77,27 +79,34 @@
 		const dracoLoader = new DRACOLoader();
 		dracoLoader.setDecoderPath('./three/examples/jsm/libs/draco/');
 		loader.setDRACOLoader(dracoLoader);
-
+		let mixer;
 		loader.load('./three/examples/models/gltf/LittlestTokyo.glb', (gltf) => {
 			let model = gltf.scene;
 			model.position.set(1, 1, 0);
 			model.scale.set(0.01, 0.01, 0.01);
 			scene.add(gltf.scene);
 			dracoLoader.dispose();
+			mixer = new THREE.AnimationMixer(model);
+			mixer.clipAction(gltf.animations[0]).play();
+			animate()
 		}, undefined, function (e) {
 			console.error(e);
 		});
+		const pmremGenerator = new THREE.PMREMGenerator(renderer);
+		scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
 
 
 		// 动画渲染
 		function animate() {
+			const delta = clock.getDelta();
+			console.log("delta:", delta)
 			controls.update();
 			renderer.render(scene, camera);
+			mixer.update(delta);
 			requestAnimationFrame(animate);
 		}
 
-		animate()
 	</script>
 
 </body>

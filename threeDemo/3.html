@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>three.js webgl - animation - keyframes</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            background-color: #bfe3dd;
+            color: #000;
+        }
+
+        a {
+            color: #2983ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="container"></div>
+
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./three/build/three.webgpu.js",
+                "three/webgpu": "./three/build/three.webgpu.js",
+                "three/tsl": "./three/build/three.tsl.js",
+                "three/addons/": "./three/examples/jsm/"
+            }
+        }
+		</script>
+
+    <script type="module">
+        import * as THREE from 'three/webgpu';
+        import { pass, renderOutput } from 'three/tsl';
+        import { sobel } from 'three/addons/tsl/display/SobelOperatorNode.js';
+
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+        import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+        import { PCDLoader } from 'three/addons/loaders/PCDLoader.js';
+
+        let camera, scene, renderer, controls;
+        let postProcessing;
+
+        const params = {
+            enabled: true
+        };
+
+        init();
+
+        async function init() {
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 1, 3);
+
+            //
+
+            // const loader = new GLTFLoader();
+            // const gltf = await loader.loadAsync('./three/examples/models/gltf/DragonAttenuation.glb');
+            // const gltf2 = await loader.loadAsync('./three/examples/models/gltf/DragonAttenuation.glb');
+            // const model2 = gltf2.scene.children[1];
+
+            // model2.position.set(5, 5, 10);
+            // console.log("gltf2:", gltf2)
+            // const model = gltf.scene.children[1];
+            // model.material = new THREE.MeshStandardNodeMaterial();
+            // model2.material = new THREE.MeshStandardNodeMaterial();
+
+            // scene.add(model);
+            // scene.add(model2);
+
+
+
+
+            const loader = new PCDLoader();
+
+            const loadPointCloud = function (file) {
+
+                loader.load('./three/examples/models/pcd/' + file, function (points) {
+
+                    points.geometry.center();
+                    points.geometry.rotateX(Math.PI);
+                    points.name = file;
+                    scene.add(points);
+
+                    const gui = new GUI();
+
+                    gui.add(points.material, 'size', 0.001, 0.01).onChange(render);
+                    gui.addColor(points.material, 'color').onChange(render);
+                    gui.add(points, 'name', [
+                        'ascii/simple.pcd',
+                        'binary/Zaghetto.pcd',
+                        'binary/Zaghetto_8bit.pcd',
+                        'binary_compressed/pcl_logo.pcd',
+                    ]).name('type').onChange(e => {
+
+                        gui.destroy();
+                        scene.remove(points);
+                        loadPointCloud(e);
+
+                    });
+                    gui.open();
+
+                    render();
+
+                });
+
+            };
+
+            loadPointCloud('binary/Zaghetto.pcd');
+
+
+
+
+            // 创建一个点云
+            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const boxMaterial = new THREE.MeshStandardNodeMaterial();
+            const box = new THREE.Mesh(boxGeometry, boxMaterial);
+            box.position.set(0, 0, 0);
+            scene.add(box);
+
+            //
+
+            renderer = new THREE.WebGPURenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setAnimationLoop(animate);
+            // renderer.toneMapping = THREE.LinearToneMapping;
+            document.body.appendChild(renderer.domElement);
+
+            await renderer.init();
+
+            const environment = new RoomEnvironment();
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+
+            scene.environment = pmremGenerator.fromScene(environment).texture;
+            pmremGenerator.dispose();
+
+            //
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.enableZoom = false;
+            controls.target.set(0, 0.5, 0);
+            controls.update();
+
+
+            // postprocessing
+
+            postProcessing = new THREE.PostProcessing(renderer);
+            postProcessing.outputColorTransform = false;
+
+            const scenePass = pass(scene, camera);
+
+            postProcessing.outputNode = sobel(renderOutput(scenePass));
+
+            //
+
+            const gui = new GUI();
+
+            gui.add(params, 'enabled');
+            gui.open();
+
+            //
+
+            window.addEventListener('resize', onWindowResize);
+
+        }
+
+
+        function onWindowResize() {
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+        }
+
+        function animate() {
+
+            controls.update();
+
+            if (params.enabled === true) {
+
+                postProcessing.render();
+
+            } else {
+
+                renderer.render(scene, camera);
+
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>
